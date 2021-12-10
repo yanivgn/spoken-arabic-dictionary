@@ -41,8 +41,13 @@ public class MainActivity extends AppCompatActivity {
         //settings of the webview
         WebSettings settings = webView.getSettings();
 
-        //enabling JavaScript
+        //enable JavaScript
         settings.setJavaScriptEnabled(true);
+
+        //enable zoom in/out
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
 
         //disable settings for security reasons
         settings.setAllowUniversalAccessFromFileURLs(false);
@@ -50,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setSaveFormData(false);
+
 
         webView.setWebViewClient(new WebViewClient(){
 
