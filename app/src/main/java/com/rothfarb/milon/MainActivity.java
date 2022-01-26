@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -37,6 +38,11 @@ public class MainActivity extends AppCompatActivity {
 
         //enable JavaScript
         settings.setJavaScriptEnabled(true);
+
+        //disable safe browsing for enabling http referer
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            settings.setSafeBrowsingEnabled(false);
+        }
 
         //enable zoom in/out
         settings.setSupportZoom(true);
