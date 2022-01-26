@@ -1,6 +1,9 @@
 package com.rothfarb.milon;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.widget.NestedScrollView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -14,6 +17,7 @@ import android.webkit.WebViewClient;
 public class MainActivity extends AppCompatActivity {
 
     WebView webView;
+    SwipeRefreshLayout swipeRefresher;
     String version = "";
 
     @Override
@@ -23,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
+        swipeRefresher = findViewById(R.id.swiperefresh);
+        NestedScrollView scroll = findViewById(R.id.scrollView);
 
 
         try {
@@ -73,6 +79,11 @@ public class MainActivity extends AppCompatActivity {
                     view.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                     return true;
                 }
+
+
+            }
+            public void onPageFinished(WebView view, String url) {
+                scroll.scrollTo(0, 0);
             }
 
         });
@@ -80,7 +91,15 @@ public class MainActivity extends AppCompatActivity {
         //initialize the webview
         webView.loadUrl("https://rothfarb.info/ronen/arabic/default.asp?app=android");
 
+        swipeRefresher.setOnRefreshListener(
+                () -> {
+                    webView.reload();
+                    swipeRefresher.setRefreshing(false);
+                }
+        );
+
     }
+
     //overiding back button pressing
     @Override
     public void onBackPressed() {
