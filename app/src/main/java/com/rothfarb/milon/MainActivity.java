@@ -1,24 +1,24 @@
 package com.rothfarb.milon;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.widget.NestedScrollView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.ViewTreeObserver;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     WebView webView;
     SwipeRefreshLayout swipeRefresher;
-    String version = "";
+    private ViewTreeObserver.OnScrollChangedListener mOnScrollChangedListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,16 +28,6 @@ public class MainActivity extends AppCompatActivity {
 
         webView = findViewById(R.id.webView);
         swipeRefresher = findViewById(R.id.swiperefresh);
-        NestedScrollView scroll = findViewById(R.id.scrollView);
-
-
-        try {
-            PackageInfo pInfo = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0);
-            version = pInfo.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-
 
         //settings of the webview
         WebSettings settings = webView.getSettings();
@@ -62,19 +52,28 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowContentAccess(false);
         settings.setSaveFormData(false);
 
-
-        webView.setWebViewClient(new WebViewClient(){
+        webView.setWebViewClient(new WebViewClient() {
 
             //overring loading url method
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url){
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 String domain = "https://rothfarb.info/ronen/arabic/";
+                Uri uri = Uri.parse(url);
+                Set<String> paramNames = uri.getQueryParameterNames();
 
-                if (url.startsWith(domain)){
+
+
+                if (url.startsWith(domain)) {
                     //loading urls from the domain in the webview
+                    if(paramNames.size() == 0){
+                        url += "?app=android";
+                    }else{
+                        url += "&app=android";
+                    }
+                    Log.d("milonURL", url);
                     view.loadUrl(url);
                     return true;
-                } else{
+                } else {
                     //loading urls outside the domain in the default browser of the device
                     view.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                     return true;
@@ -82,10 +81,6 @@ public class MainActivity extends AppCompatActivity {
 
 
             }
-            public void onPageFinished(WebView view, String url) {
-                scroll.scrollTo(0, 0);
-            }
-
         });
 
         //initialize the webview
@@ -108,5 +103,23 @@ public class MainActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        swipeRefresher.getViewTreeObserver().addOnScrollChangedListener(mOnScrollChangedListener =
+                () -> {
+                    if (webView.getScrollY() == 0)
+                        swipeRefresher.setEnabled(true);
+                    else
+                        swipeRefresher.setEnabled(false);
+                });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        swipeRefresher.getViewTreeObserver().removeOnScrollChangedListener(mOnScrollChangedListener);
     }
 }
