@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ViewTreeObserver;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -17,7 +16,6 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity {
 
     WebView webView;
-
     SwipeRefreshLayout swipeRefresher;
     private ViewTreeObserver.OnScrollChangedListener mOnScrollChangedListener;
 
@@ -28,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
-
         swipeRefresher = findViewById(R.id.swiperefresh);
 
         //settings of the webview
@@ -63,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
                 Uri uri = Uri.parse(url);
                 Set<String> paramNames = uri.getQueryParameterNames();
 
-
-
                 if (url.startsWith(domain)) {
                     //loading urls from the domain in the webview
                     if(paramNames.size() == 0){
@@ -72,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
                     }else{
                         url += "&app=android";
                     }
-                    Log.d("milonURL", url);
                     view.loadUrl(url);
                     return true;
                 } else {
@@ -82,14 +76,21 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
-
             }
         });
 
         //initialize the webview
         webView.loadUrl("https://rothfarb.info/ronen/arabic/default.asp?app=android");
 
+        swipeRefresher.setOnRefreshListener(
+                () -> {
+                    webView.reload();
+                    swipeRefresher.setRefreshing(false);
+                }
+        );
+
     }
+
     //overiding back button pressing
     @Override
     public void onBackPressed() {
