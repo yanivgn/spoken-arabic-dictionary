@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.ViewTreeObserver;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.io.InputStream;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -56,7 +58,9 @@ public class MainActivity extends AppCompatActivity {
             //overring loading url method
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                String domain = "https://rothfarb.info/ronen/arabic/";
+
+                String domain = "https://milon.madrasafree.com";
+
                 Uri uri = Uri.parse(url);
                 Set<String> paramNames = uri.getQueryParameterNames();
 
@@ -68,20 +72,23 @@ public class MainActivity extends AppCompatActivity {
                         url += "&app=android";
                     }
                     view.loadUrl(url);
-                    return true;
                 } else {
                     //loading urls outside the domain in the default browser of the device
                     view.getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                    return true;
                 }
+                return true;
+            }
+            @Override
+            public void onPageFinished(WebView view, String url) {
 
-
+                // Inject CSS when page is done loading
+                injectCSS();
+                super.onPageFinished(view, url);
             }
         });
 
         //initialize the webview
-        webView.loadUrl("https://rothfarb.info/ronen/arabic/default.asp?app=android");
-
+        webView.loadUrl("https://milon.madrasafree.com?app=android");
         swipeRefresher.setOnRefreshListener(
                 () -> {
                     webView.reload();
@@ -117,5 +124,25 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         swipeRefresher.getViewTreeObserver().removeOnScrollChangedListener(mOnScrollChangedListener);
+    }
+
+    private void injectCSS() {
+        try {
+            InputStream inputStream = getAssets().open("style.css");
+            byte[] buffer = new byte[inputStream.available()];
+            inputStream.read(buffer);
+            inputStream.close();
+            String encoded = Base64.encodeToString(buffer, Base64.NO_WRAP);
+            webView.loadUrl("javascript:(function() {" +
+                    "var parent = document.getElementsByTagName('head').item(0);" +
+                    "var style = document.createElement('style');" +
+                    "style.type = 'text/css';" +
+                    // Tell the browser to BASE64-decode the string into your script !!!
+                    "style.innerHTML = window.atob('" + encoded + "');" +
+                    "parent.appendChild(style)" +
+                    "})()");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
